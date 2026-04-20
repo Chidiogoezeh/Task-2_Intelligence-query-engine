@@ -28,37 +28,52 @@ export const save = async (p) => {
     p.age_group,
     p.country_id,
     p.country_probability
-    // Removed p.created_at from here
   ];
   return await pool.execute(sql, params);
 };
 
 export const findAll = async (filters) => {
-  let sql = "SELECT id, name, gender, age, age_group, country_id FROM profiles";
+  const { 
+    gender, age_group, country_id, 
+    min_age, max_age, min_gender_probability, min_country_probability,
+    sort_by = 'created_at', order = 'desc',
+    page = 1, limit = 10 
+  } = filters;
+
+  // Formatting values to ensure they are numeric
+  const pPage = parseInt(page);
+  const pLimit = parseInt(limit);
+  const pOffset = (pPage - 1) * pLimit;
+
+  let queryBase = " FROM profiles";
   const params = [];
   const clauses = [];
 
-  if (filters.gender) {
-    clauses.push("LOWER(gender) = LOWER(?)");
-    params.push(filters.gender);
-  }
-  if (filters.country_id) {
-    clauses.push("country_id = ?");
-    params.push(filters.country_id);
-  }
-  if (filters.age_group) {
-    clauses.push("age_group = ?");
-    params.push(filters.age_group);
-  }
+  // Filtering Logic
+  if (gender) { clauses.push("gender = ?"); params.push(gender); }
+  if (age_group) { clauses.push("age_group = ?"); params.push(age_group); }
+  if (country_id) { clauses.push("country_id = ?"); params.push(country_id); }
+  if (min_age) { clauses.push("age >= ?"); params.push(Number(min_age)); }
+  if (max_age) { clauses.push("age <= ?"); params.push(Number(max_age)); }
+  if (min_gender_probability) { clauses.push("gender_probability >= ?"); params.push(Number(min_gender_probability)); }
+  if (min_country_probability) { clauses.push("country_probability >= ?"); params.push(Number(min_country_probability)); }
 
-  if (clauses.length > 0) sql += " WHERE " + clauses.join(" AND ");
-  const [rows] = await pool.execute(sql, params);
-  return rows;
-};
+  if (clauses.length > 0) queryBase += " WHERE " + clauses.join(" AND ");
 
-export const deleteById = async (id) => {
-  const [result] = await pool.execute("DELETE FROM profiles WHERE id = ?", [
-    id,
-  ]);
-  return result.affectedRows > 0;
+  // 1. Get Total Count
+  const [countResult] = await pool.execute(`SELECT COUNT(*) as total ${queryBase}`, params);
+  const total = countResult[0].total;
+
+  // 2. Sorting
+  const allowedSortFields = ['age', 'created_at', 'gender_probability'];
+  const finalSortField = allowedSortFields.includes(sort_by) ? sort_by : 'created_at';
+  const finalOrder = order.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
+  
+  // 3. Final Query execution with Integer parameters for LIMIT/OFFSET
+  const finalSql = `SELECT * ${queryBase} ORDER BY ${finalSortField} ${finalOrder} LIMIT ? OFFSET ?`;
+  
+  // Note: Using pLimit and pOffset directly as numbers
+  const [rows] = await pool.execute(finalSql, [...params, pLimit, pOffset]);
+  
+  return { data: rows, total };
 };

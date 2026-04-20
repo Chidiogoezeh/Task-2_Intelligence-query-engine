@@ -6,7 +6,7 @@ export const createProfile = async (name) => {
   // Check Idempotency
   const existing = await profileModel.findByName(name);
   if (existing) return { data: existing, isNew: false };
-
+  
   // Aggregate API calls
   const [genderData, ageData, nationalData] = await Promise.all([
     externalService.fetchGenderData(name),
@@ -32,6 +32,53 @@ export const getProfileById = async (id) => {
 };
 
 export const listProfiles = async (filters) => {
+  return await profileModel.findAll(filters);
+};
+
+export const searchProfiles = async (query, pagination) => {
+  const filters = { ...pagination };
+  const q = query.toLowerCase();
+  let interpreted = false;
+
+  // Rule-based parsing: Gender
+  if (q.includes("female")) { filters.gender = "female"; interpreted = true; }
+  else if (q.includes("male")) { filters.gender = "male"; interpreted = true; }
+
+  // Rule-based parsing: Special "Young" mapping (16-24)
+  if (q.includes("young")) {
+    filters.min_age = 16;
+    filters.max_age = 24;
+    interpreted = true;
+  }
+
+  // Rule-based parsing: Age Groups
+  if (q.includes("teenager")) { filters.age_group = "teenager"; interpreted = true; }
+  if (q.includes("adult")) { filters.age_group = "adult"; interpreted = true; }
+  if (q.includes("senior")) { filters.age_group = "senior"; interpreted = true; }
+
+  // Rule-based parsing: Dynamic "above X"
+  const aboveMatch = q.match(/above (\d+)/);
+  if (aboveMatch) {
+    filters.min_age = parseInt(aboveMatch[1]);
+    interpreted = true;
+  }
+
+  // Rule-based parsing: Countries
+  const countries = { "nigeria": "NG", "kenya": "KE", "angola": "AO", "benin": "BJ" };
+  for (const [name, id] of Object.entries(countries)) {
+    if (q.includes(name) || q.includes(`from ${name}`)) {
+      filters.country_id = id;
+      interpreted = true;
+    }
+  }
+
+  // Strictly check if we extracted any logic
+  if (!interpreted) {
+    const error = new Error("Unable to interpret query");
+    error.status = 400; // Requirement #4 & #6
+    throw error;
+  }
+
   return await profileModel.findAll(filters);
 };
 

@@ -29,9 +29,47 @@ export const getProfile = async (req, res, next) => {
 
 export const getProfiles = async (req, res, next) => {
   try {
-    const profiles = await profileService.listProfiles(req.query);
-    return successResponse(res, profiles, 200, { count: profiles.length });
+    const { page = 1, limit = 10, ...filters } = req.query;
+    const validatedPage = parseInt(page);
+    const validatedLimit = Math.min(parseInt(limit), 50);
+
+    const { data, total } = await profileService.listProfiles({ 
+      ...filters, 
+      page: validatedPage, 
+      limit: validatedLimit 
+    });
+
+    // Using successResponse utility to match required format
+    return successResponse(res, data, 200, {
+      page: validatedPage,
+      limit: validatedLimit,
+      total: total
+    });
   } catch (error) {
+    next(error);
+  }
+};
+
+export const searchProfiles = async (req, res, next) => {
+  try {
+    const { q, page = 1, limit = 10 } = req.query;
+    if (!q) return errorResponse(res, "Missing or empty parameter", 400);
+
+    const validatedPage = parseInt(page);
+    const validatedLimit = Math.min(parseInt(limit), 50);
+
+    const { data, total } = await profileService.searchProfiles(q, { 
+      page: validatedPage, 
+      limit: validatedLimit 
+    });
+
+    return successResponse(res, data, 200, {
+      page: validatedPage,
+      limit: validatedLimit,
+      total: total
+    });
+  } catch (error) {
+    // If the service throws a parsing error, it will be caught here
     next(error);
   }
 };
