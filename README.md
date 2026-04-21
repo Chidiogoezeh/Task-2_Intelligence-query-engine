@@ -1,23 +1,8 @@
-Data Persistence and API Design Task
-
-A real-time RESTful application built with Node.js, Express, and MySQL. This service functions as an enrichment engine that takes a simple name and transforms it into a detailed demographic profile using multiple external intelligence APIs.
-
-Context
-The Profile Intelligence Service is designed for systems requiring automated user profiling and data enrichment.
-
-The Input: A simple user-provided name.
-
-The Engine: Simultaneously queries Genderize, Agify, and Nationalize APIs to aggregate demographic data.
-
-The Result: A structured, persistent profile featuring gender probability, age classification, and country of origin.
-
-Below is a professional, high-quality README.md tailored specifically for your Profile Intelligence Service, following the exact structure and style you requested.
-
-Profile Intelligence Service
+Profile Intelligence Query Engine
 A real-time, high-performance RESTful application built with Node.js, Express, and MySQL. This service functions as an enrichment engine that takes a simple name and transforms it into a detailed demographic profile using multiple external intelligence APIs.
 
 Context
-The Profile Intelligence Service is designed for systems requiring automated user profiling and data enrichment.
+The Profile Intelligence Service is designed for systems requiring automated user profiling and data enrichment for Insighta Labs.
 
 The Input: A simple user-provided name.
 
@@ -26,153 +11,82 @@ The Engine: Simultaneously queries Genderize, Agify, and Nationalize APIs to agg
 The Result: A structured, persistent profile featuring gender probability, age classification, and country of origin.
 
 Features
--- Data Enrichment & Logic
-Multi-API Aggregation: Integrated with three third-party services to fetch real-time intelligence.
+Data Enrichment and Logic
+- Multi-API Aggregation: Integrated with three third-party services to fetch real-time intelligence.
 
-Age Classification: Automatic categorization into life stages: child (0-12), teenager (13-19), adult (20-59), or senior (60+).
+- Age Classification: Automatic categorization into life stages: child (0-12), teenager (13-19), adult (20-59), or senior (60+).
 
-National Identity: Intelligent selection of the highest-probability country code from geographic data.
+- National Identity: Intelligent selection of the highest-probability country code from geographic data.
 
--- Persistence & Reliability
-Idempotency Handling: Intelligent duplicate detection. If a name has already been processed, the system returns the existing record instead of creating a new one or re-calling external APIs.
+Persistence & Reliability
+- Idempotency Handling: If a name has already been processed, the system returns the existing record instead of re-calling external APIs.
 
-UUID v7 Integration: Uses time-sortable Version 7 UUIDs for primary keys, ensuring better database indexing performance.
+- UUID v7 Integration: Uses time-sortable Version 7 UUIDs for primary keys to ensure optimal database indexing.
 
-Data Integrity: Upstream validation ensures that if an external API returns null or insufficient data, the system triggers a 502 Bad Gateway error to prevent corrupted records.
+- Data Integrity: Upstream validation triggers a 502 Bad Gateway error if external APIs return insufficient data.
 
--- System Design
-Case-Insensitive Filtering: Search through profiles by gender, country_id, or age_group without worrying about casing.
+System Design
+- Advanced Filtering: Support for 7+ combined filters including probability thresholds and age ranges.
 
-Standardized Responses: Clean, consistent JSON formatting for all success and error states.
+- Natural Language Query: Interpret plain English queries into structured database filters.
 
-CORS Enabled: Configured with Access-Control-Allow-Origin: * for seamless frontend or grading script integration.
-
-Tech Stack
-Runtime: Node.js (ES6 Modules)
-
-Framework: Express.js
-
-Database: MySQL 8.0+
-
-Drivers: mysql2/promise (Connection Pooling)
-
-HTTP Client: Axios
-
-Utilities: uuid, dotenv, cors
-
-Project Architecture (MVC-S)
-The project follows a modular architecture to separate concerns between routing, business logic, and data persistence:
-
-- Entry Point: server.js (Server initialization)
-
-- Application Setup: src/app.js (Express configuration & Middleware)
-
-- Controllers: src/controllers/ (Request/Response handling)
-
-- Services: src/services/ (Business logic, API aggregation & external wrappers)
-
-- Models: src/models/ (SQL query abstraction)
-
-- Utilities: src/utils/ (Response formatting & UUID generation)
-
-Installation & Setup
-1. Clone the repository
-git clone https://github.com/Chidiogoezeh/Task-1_Data-Persistence---API-Design.git
-
-2. Install dependencies
-npm install
-
-Below is a professional, high-quality README.md tailored specifically for your Profile Intelligence Service, following the exact structure and style you requested.
-
-Profile Intelligence Service
-A real-time, high-performance RESTful application built with Node.js, Express, and MySQL. This service functions as an enrichment engine that takes a simple name and transforms it into a detailed demographic profile using multiple external intelligence APIs.
-
-Context
-The Profile Intelligence Service is designed for systems requiring automated user profiling and data enrichment.
-
-The Input: A simple user-provided name.
-
-The Engine: Simultaneously queries Genderize, Agify, and Nationalize APIs to aggregate demographic data.
-
-The Result: A structured, persistent profile featuring gender probability, age classification, and country of origin.
-
-Features
--- Data Enrichment & Logic
-Multi-API Aggregation: Integrated with three third-party services to fetch real-time intelligence.
-
-Age Classification: Automatic categorization into life stages: child (0-12), teenager (13-19), adult (20-59), or senior (60+).
-
-National Identity: Intelligent selection of the highest-probability country code from geographic data.
-
--- Persistence & Reliability
-Idempotency Handling: Intelligent duplicate detection. If a name has already been processed, the system returns the existing record instead of creating a new one or re-calling external APIs.
-
-UUID v7 Integration: Uses time-sortable Version 7 UUIDs for primary keys, ensuring better database indexing performance.
-
-Data Integrity: Upstream validation ensures that if an external API returns null or insufficient data, the system triggers a 502 Bad Gateway error to prevent corrupted records.
-
--- System Design
-Case-Insensitive Filtering: Search through profiles by gender, country_id, or age_group without worrying about casing.
-
-Standardized Responses: Clean, consistent JSON formatting for all success and error states.
-
-CORS Enabled: Configured with Access-Control-Allow-Origin: * for seamless frontend or grading script integration.
+- CORS Enabled: Configured with Access-Control-Allow-Origin: * for seamless integration.
 
 Tech Stack
-Runtime: Node.js (ES6 Modules)
+- Runtime: Node.js (ES6 Modules)
 
-Framework: Express.js
+- Framework: Express.js
 
-Database: MySQL 8.0+
+- Database: MySQL 8.0+
 
-Drivers: mysql2/promise (Connection Pooling)
+- HTTP Client: Axios
 
-HTTP Client: Axios
-
-Utilities: uuid, dotenv, cors
-
-Project Architecture (MVC-S)
-The project follows a modular architecture to separate concerns between routing, business logic, and data persistence:
-
-Entry Point: server.js (Server initialization)
-
-Application Setup: src/app.js (Express configuration & Middleware)
-
-Controllers: src/controllers/ (Request/Response handling)
-
-Services: src/services/ (Business logic, API aggregation & external wrappers)
-
-Models: src/models/ (SQL query abstraction)
-
-Utilities: src/utils/ (Response formatting & UUID generation)
+- Utilities: uuid, dotenv, cors, mysql2
 
 Installation & Setup
-1. Clone the repository
-Bash
-git clone https://github.com/Chidiogoezeh/Third-semester-month-1.git
-cd profile-intelligence-service
-2. Install dependencies
-Bash
-npm install
-3. Database Setup
-Create a MySQL database and run the provided schema.sql script to generate the profiles table.
+Clone the repository
+    - git clone https://github.com/Chidiogoezeh/Task-2_Intelligence-query-engine.git
+    - cd profile-intelligence-service
 
-4. Environment Variables
-Create a .env file in the root directory:
-PORT=3000
-DB_HOST=localhost
-DB_USER=your_user
-DB_PASSWORD=your_password
-DB_NAME=profile_db
+Install dependencies
+    - npm install
 
-5. Run the application
-- Development mode
-npm run dev
+Database Setup
+    - Run the provided schema.sql script in your MySQL instance to generate the profiles table.
 
-- Production mode
-node server.js
+Environment Variables
+Create a .env file:
 
-The server will run on http://localhost:3000.
+- Code snippet
+- PORT=3000
+- DB_HOST=localhost
+- DB_USER=your_user
+- DB_PASSWORD=your_password
+- DB_NAME=profile_db
+
+Run the application
+    - npm run dev
+
+Natural Language Parsing Approach.
+Our system uses a Rule-Based Parsing Engine to convert plain English into structured SQL filters. This ensures deterministic results without the latency of an LLM.
+
+Supported Keywords & Mappings
+- Gender: "males" or "females" maps to the gender filter.
+
+- Age Groups: "teenager", "adult", "senior" maps to the age_group column.
+
+- "Young" Keyword: Strictly interpreted as ages 16–24 (Rule-based parsing).
+
+- Comparison: "above [number]" maps to min_age.
+
+- Location: Detects country names (e.g., "Nigeria", "Kenya") and maps them to ISO codes (NG, KE).
+
+Parsing Limitations
+The parser does not support complex negation (e.g., "not from Nigeria").
+
+Multiple conflicting age ranges in one string may result in the last detected range being applied.
+
+If a query contains no recognizable keywords from our rules, it returns a 400 error: Unable to interpret query.
 
 API Documentation
 1. Create Profile
@@ -180,19 +94,25 @@ Endpoint: POST /api/profiles
 
 Payload: { "name": "ella" }
 
-Logic: Calls external APIs, classifies age, and stores data. Returns existing data if the name already exists.
+Logic: Fetches data from external APIs and stores it.
 
-2. Get All Profiles
+2. Get All Profiles (Advanced Query)
 Endpoint: GET /api/profiles
 
-Query Params (Optional): gender, country_id, age_group
+Filters: gender, age_group, country_id, min_age, max_age, min_gender_probability, min_country_probability
 
-Example: /api/profiles?gender=male&country_id=NG
+Sorting: sort_by (age, created_at, gender_probability), order (asc, desc)
 
-3. Get Single Profile
-Endpoint: GET /api/profiles/:id
+Pagination: page (default 1), limit (default 10, max 50)
 
-Response: Full demographic breakdown of the specific UUID.
+Example: /api/profiles?gender=male&country_id=NG&min_age=25&sort_by=age&order=desc
+
+3. Natural Language Search
+Endpoint: GET /api/profiles/search
+
+Query Param: q (The English string)
+
+Example: /api/profiles/search?q=young males from nigeria
 
 4. Delete Profile
 Endpoint: DELETE /api/profiles/:id
@@ -200,13 +120,14 @@ Endpoint: DELETE /api/profiles/:id
 Response: 204 No Content.
 
 Error Handling
-The service uses standard HTTP status codes and a consistent error object:
-{ "status": "error", "message": "<detailed message>" }
+The service returns consistent error objects:
 
-400: Missing or empty name.
+JSON
+{ "status": "error", "message": "<detailed message>" }
+400: Missing or empty parameter / Unable to interpret query.
+
+422: Invalid parameter type (e.g., passing a string where a number is expected).
 
 404: Profile not found.
 
-422: Invalid data types.
-
-502: Upstream API failure (Genderize/Agify/Nationalize returned null or 0 results).
+502: Upstream API failure.
