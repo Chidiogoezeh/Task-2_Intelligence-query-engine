@@ -39,11 +39,13 @@ export const getProfiles = async (req, res, next) => {
       limit: validatedLimit 
     });
 
-    // Using successResponse utility to match required format
-    return successResponse(res, data, 200, {
+    // Ensure metadata is at the top level alongside 'status' and 'data'
+    return res.status(200).json({
+      status: "success",
       page: validatedPage,
       limit: validatedLimit,
-      total: total
+      total: total,
+      data: data
     });
   } catch (error) {
     next(error);

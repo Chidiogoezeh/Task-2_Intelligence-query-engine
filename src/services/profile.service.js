@@ -6,7 +6,7 @@ export const createProfile = async (name) => {
   // Check Idempotency
   const existing = await profileModel.findByName(name);
   if (existing) return { data: existing, isNew: false };
-  
+
   // Aggregate API calls
   const [genderData, ageData, nationalData] = await Promise.all([
     externalService.fetchGenderData(name),
@@ -40,11 +40,11 @@ export const searchProfiles = async (query, pagination) => {
   const q = query.toLowerCase();
   let interpreted = false;
 
-  // Rule-based parsing: Gender
+  // Rule-based parsing: Gender (Removed 'else' to allow combined logic detection)
   if (q.includes("female")) { filters.gender = "female"; interpreted = true; }
-  else if (q.includes("male")) { filters.gender = "male"; interpreted = true; }
+  if (q.includes("male") && !q.includes("female")) { filters.gender = "male"; interpreted = true; }
 
-  // Rule-based parsing: Special "Young" mapping (16-24)
+  // Rule-based parsing: "Young" (16-24)
   if (q.includes("young")) {
     filters.min_age = 16;
     filters.max_age = 24;
@@ -63,19 +63,18 @@ export const searchProfiles = async (query, pagination) => {
     interpreted = true;
   }
 
-  // Rule-based parsing: Countries
+  // Rule-based parsing: Countries (Support ISO detection via 'from X')
   const countries = { "nigeria": "NG", "kenya": "KE", "angola": "AO", "benin": "BJ" };
   for (const [name, id] of Object.entries(countries)) {
-    if (q.includes(name) || q.includes(`from ${name}`)) {
+    if (q.includes(name)) {
       filters.country_id = id;
       interpreted = true;
     }
   }
 
-  // Strictly check if we extracted any logic
   if (!interpreted) {
     const error = new Error("Unable to interpret query");
-    error.status = 400; // Requirement #4 & #6
+    error.status = 400; 
     throw error;
   }
 
