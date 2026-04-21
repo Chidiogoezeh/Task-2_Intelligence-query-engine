@@ -55,23 +55,22 @@ export const getProfiles = async (req, res, next) => {
 export const searchProfiles = async (req, res, next) => {
   try {
     const { q, page = 1, limit = 10 } = req.query;
-    if (!q) return errorResponse(res, "Missing or empty parameter", 400);
+    if (!q) return res.status(400).json({ status: "error", message: "Missing or empty parameter" });
 
-    const validatedPage = parseInt(page);
-    const validatedLimit = Math.min(parseInt(limit), 50);
+    const p = parseInt(page);
+    const l = Math.min(parseInt(limit), 50);
 
-    const { data, total } = await profileService.searchProfiles(q, { 
-      page: validatedPage, 
-      limit: validatedLimit 
-    });
+    const { data, total } = await profileService.searchProfiles(q, { page: p, limit: l });
 
-    return successResponse(res, data, 200, {
-      page: validatedPage,
-      limit: validatedLimit,
-      total: total
+    // Exact JSON structure
+    return res.status(200).json({
+      status: "success",
+      page: p,
+      limit: l,
+      total: total,
+      data: data
     });
   } catch (error) {
-    // If the service throws a parsing error, it will be caught here
     next(error);
   }
 };

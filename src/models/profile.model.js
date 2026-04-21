@@ -75,8 +75,10 @@ export const findAll = async (filters) => {
   const finalSortField = allowedSortFields.includes(sort_by) ? sort_by : 'created_at';
   const finalOrder = order.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
   
-  // Use .query instead of .execute for LIMIT/OFFSET with variable binding in some MySQL versions
+  // Performance - Use numeric values for LIMIT and OFFSET
   const finalSql = `SELECT * ${queryBase} ORDER BY ${finalSortField} ${finalOrder} LIMIT ? OFFSET ?`;
+  
+  // Note: some MySQL drivers require LIMIT/OFFSET to be numbers, not strings
   const [rows] = await pool.query(finalSql, [...params, pLimit, pOffset]);
   
   return { data: rows, total };

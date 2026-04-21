@@ -40,38 +40,40 @@ export const searchProfiles = async (query, pagination) => {
   const q = query.toLowerCase();
   let interpreted = false;
 
-  // Rule-based parsing: Gender (Removed 'else' to allow combined logic detection)
-  if (q.includes("female")) { filters.gender = "female"; interpreted = true; }
-  if (q.includes("male") && !q.includes("female")) { filters.gender = "male"; interpreted = true; }
-
-  // Rule-based parsing: "Young" (16-24)
+  // "young" -> 16-24 (strictly)
   if (q.includes("young")) {
     filters.min_age = 16;
     filters.max_age = 24;
     interpreted = true;
   }
 
-  // Rule-based parsing: Age Groups
+  // Gender detection
+  if (q.includes("female")) { filters.gender = "female"; interpreted = true; }
+  // Only set male if "female" isn't the primary subject
+  if (q.includes("male") && !q.includes("female")) { filters.gender = "male"; interpreted = true; }
+
+  // Age groups
   if (q.includes("teenager")) { filters.age_group = "teenager"; interpreted = true; }
   if (q.includes("adult")) { filters.age_group = "adult"; interpreted = true; }
   if (q.includes("senior")) { filters.age_group = "senior"; interpreted = true; }
 
-  // Rule-based parsing: Dynamic "above X"
+  // Specific "above X"
   const aboveMatch = q.match(/above (\d+)/);
   if (aboveMatch) {
     filters.min_age = parseInt(aboveMatch[1]);
     interpreted = true;
   }
 
-  // Rule-based parsing: Countries (Support ISO detection via 'from X')
-  const countries = { "nigeria": "NG", "kenya": "KE", "angola": "AO", "benin": "BJ" };
-  for (const [name, id] of Object.entries(countries)) {
+  // Country Keywords (Add more as needed)
+  const countryMap = { "nigeria": "NG", "kenya": "KE", "angola": "AO", "benin": "BJ" };
+  for (const [name, id] of Object.entries(countryMap)) {
     if (q.includes(name)) {
       filters.country_id = id;
       interpreted = true;
     }
   }
 
+  // Strict error message for uninterpretable queries
   if (!interpreted) {
     const error = new Error("Unable to interpret query");
     error.status = 400; 
