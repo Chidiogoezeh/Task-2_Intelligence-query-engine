@@ -40,46 +40,35 @@ export const findAll = async (filters) => {
     page = 1, limit = 10 
   } = filters;
 
-  // Formatting values to ensure they are numeric
-  const pPage = parseInt(page);
   const pLimit = parseInt(limit);
-  const pOffset = (pPage - 1) * pLimit;
+  const pOffset = (parseInt(page) - 1) * pLimit;
 
   let queryBase = " FROM profiles";
   const params = [];
   const clauses = [];
 
-  // Filtering Logic - Ensure exact naming from Requirement #1
+  // Implement all 7 required filters
   if (gender) { clauses.push("gender = ?"); params.push(gender); }
   if (age_group) { clauses.push("age_group = ?"); params.push(age_group); }
   if (country_id) { clauses.push("country_id = ?"); params.push(country_id); }
   if (min_age) { clauses.push("age >= ?"); params.push(Number(min_age)); }
   if (max_age) { clauses.push("age <= ?"); params.push(Number(max_age)); }
-  
-  // Specific fix for probability column names
-  if (min_gender_probability) { 
-    clauses.push("gender_probability >= ?"); 
-    params.push(Number(min_gender_probability)); 
-  }
-  if (min_country_probability) { 
-    clauses.push("country_probability >= ?"); 
-    params.push(Number(min_country_probability)); 
-  }
+  if (min_gender_probability) { clauses.push("gender_probability >= ?"); params.push(Number(min_gender_probability)); }
+  if (min_country_probability) { clauses.push("country_probability >= ?"); params.push(Number(min_country_probability)); }
 
   if (clauses.length > 0) queryBase += " WHERE " + clauses.join(" AND ");
 
-  const [countResult] = await pool.execute(`SELECT COUNT(*) as total ${queryBase}`, params);
-  const total = countResult[0].total;
+  // Count total for pagination response
+  const [countRes] = await pool.execute(`SELECT COUNT(*) as total ${queryBase}`, params);
+  const total = countRes[0].total;
 
-  const allowedSortFields = ['age', 'created_at', 'gender_probability'];
-  const finalSortField = allowedSortFields.includes(sort_by) ? sort_by : 'created_at';
-  const finalOrder = order.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
-  
-  // Performance - Use numeric values for LIMIT and OFFSET
-  const finalSql = `SELECT * ${queryBase} ORDER BY ${finalSortField} ${finalOrder} LIMIT ? OFFSET ?`;
-  
-  // Note: some MySQL drivers require LIMIT/OFFSET to be numbers, not strings
-  const [rows] = await pool.query(finalSql, [...params, pLimit, pOffset]);
-  
+  // Sorting
+  const allowed = ['age', 'created_at', 'gender_probability'];
+  const sort = allowed.includes(sort_by) ? sort_by : 'created_at';
+  const dir = order.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
+
+  const sql = `SELECT * ${queryBase} ORDER BY ${sort} ${dir} LIMIT ? OFFSET ?`;
+  const [rows] = await pool.query(sql, [...params, pLimit, pOffset]);
+
   return { data: rows, total };
-}
+};
